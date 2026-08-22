@@ -22,6 +22,8 @@ Automatic selection and the status list need to contact those instances, which i
 
 Instances behind an Anubis or Cloudflare interstitial are shown as working with an extra check on load, and are ranked below instances that answer directly — your browser clears those challenges on its own, but a background check cannot.
 
+Clicking a link that points straight at one of the shipped instances (a bookmark, a shared URL) is covered too: if that instance is known to be down, the extension redirects you to whichever instance it currently trusts instead of letting the navigation fail. This only applies to instances on the shipped list, and requires the same optional permission as Automatic mode.
+
 ## Build
 
 1.  `npm install --global web-ext`

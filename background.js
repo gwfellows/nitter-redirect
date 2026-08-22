@@ -123,16 +123,19 @@ browser.alarms.onAlarm.addListener((alarm) => {
 browser.permissions.onAdded.addListener(scheduleHealthChecks);
 browser.permissions.onRemoved.addListener(scheduleHealthChecks);
 
-// A navigation to the active instance that dies at the network layer is the
-// earliest signal that it went down. Mark it and re-resolve, so the next
-// navigation lands somewhere else rather than failing again.
+// A navigation that dies at the network layer is the earliest signal that an
+// instance went down - mark it so the next request to it (via the listener
+// below, or the active-instance logic above) routes around it instead of
+// failing again. Only instances we already have a health record for are
+// touched, which is also how this stays a no-op without the optional
+// instance permission (health is never populated then).
 browser.webRequest.onErrorOccurred.addListener(
   (details) => {
-    if (details.type !== "main_frame" || instanceMode !== MODE_AUTO) {
+    if (details.type !== "main_frame") {
       return;
     }
     const origin = new URL(details.url).origin;
-    if (origin !== activeInstance || !health[origin]) {
+    if (!health[origin]) {
       return;
     }
     console.info("Instance failed to load, marking down", origin, details.error);
@@ -144,9 +147,48 @@ browser.webRequest.onErrorOccurred.addListener(
       detail: "Failed to load",
     };
     storageLocal.set({ health });
-    applyActiveInstance().then(runHealthCheck);
+    if (origin === activeInstance && instanceMode === MODE_AUTO) {
+      applyActiveInstance().then(runHealthCheck);
+    }
   },
   { urls: INSTANCE_ORIGINS }
+);
+
+// A link pointing straight at one of our known instances (an old bookmark, a
+// shared URL, a search result) skips the twitter.com redirect path entirely.
+// If that instance is known to be down, send the browser to whichever
+// instance we currently trust instead of letting the navigation fail.
+function redirectDeadInstance(url) {
+  if (nitterDisabled) {
+    return null;
+  }
+  const record = health[url.origin];
+  if (!record || record.status !== STATUS_DOWN) {
+    return null;
+  }
+  let target = activeInstance;
+  if (target === url.origin) {
+    const ranked = rankHealthy(health);
+    target = ranked.length ? ranked[0].url : null;
+  }
+  if (!target || target === url.origin) {
+    return null;
+  }
+  return `${target}${url.pathname}${url.search}`;
+}
+
+browser.webRequest.onBeforeRequest.addListener(
+  (details) => {
+    const url = new URL(details.url);
+    const redirectUrl = redirectDeadInstance(url);
+    if (redirectUrl) {
+      console.info("Instance is down, redirecting", `"${url.href}"`, "=>", `"${redirectUrl}"`);
+      return { redirectUrl };
+    }
+    return {};
+  },
+  { urls: INSTANCE_ORIGINS, types: ["main_frame"] },
+  ["blocking"]
 );
 
 /* -------------------------------- redirects ------------------------------- */
