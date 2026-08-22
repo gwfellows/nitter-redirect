@@ -1,11 +1,7 @@
 "use strict";
 
-const nitterDefault = "https://nitter.net";
-
 let nitterDisabled;
 let instance;
-
-window.browser = window.browser || window.chrome;
 
 function redirectTwitter(url) {
   if (url.host.split(".")[0] === "pbs") {
@@ -19,9 +15,15 @@ function redirectTwitter(url) {
   }
 }
 
-browser.storage.sync.get(["nitterDisabled", "instance"], (result) => {
-  nitterDisabled = result.nitterDisabled;
-  instance = result.instance || nitterDefault;
+Promise.all([
+  storageSync.get(["nitterDisabled"]),
+  storageLocal.get(["activeInstance"]),
+]).then(([prefs, local]) => {
+  nitterDisabled = prefs.nitterDisabled;
+  // The background page resolves this from the mode, the manual choice and the
+  // latest health check, so the content script just follows its lead.
+  instance = local.activeInstance || NITTER_DEFAULT;
+
   navigator.serviceWorker.getRegistrations().then((registrations) => {
     for (let registration of registrations) {
       if (
@@ -33,8 +35,9 @@ browser.storage.sync.get(["nitterDisabled", "instance"], (result) => {
       }
     }
   });
+
   const url = new URL(window.location);
-  if (!nitterDisabled && url.host !== instance) {
+  if (!nitterDisabled && url.origin !== instance) {
     const redirect = redirectTwitter(url);
     console.info("Redirecting", `"${url.href}"`, "=>", `"${redirect}"`);
     window.location = redirect;

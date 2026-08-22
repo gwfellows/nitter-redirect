@@ -1,10 +1,15 @@
 {
   "name": "Nitter Redirect",
   "description": "Redirects Twitter and X requests to Nitter, the privacy friendly alternative.",
-  "version": "1.1.5",
+  "version": "1.2.0",
   "manifest_version": 2,
   "background": {
-    "scripts": ["background.js"],
+    "scripts": [
+      "browser-api.js",
+      "instances.js",
+      "health.js",
+      "background.js"
+    ],
     "persistent": true
   },
   "icons": {
@@ -23,11 +28,12 @@
         "*://pbs.twimg.com/*",
         "*://video.twimg.com/*"
       ],
-      "js": ["content-script.js"],
+      "js": ["browser-api.js", "instances.js", "content-script.js"],
       "run_at": "document_start"
     }
   ],
   "permissions": [
+    "alarms",
     "storage",
     "webRequest",
     "webRequestBlocking",
@@ -40,6 +46,17 @@
     "*://pbs.twimg.com/*",
     "*://video.twimg.com/*"
   ],
+  "optional_permissions": [
+    "https://nitter.space/*",
+    "https://lightbrd.com/*",
+    "https://xcancel.com/*",
+    "https://nitter.tiekoetter.com/*",
+    "https://nitter.poast.org/*",
+    "https://nitter.catsarch.com/*",
+    "https://nitter.kareem.one/*",
+    "https://nuku.trabun.org/*",
+    "https://nitter.net/*"
+  ],
   "browser_action": {
     "default_popup": "pages/popup/popup.html",
     "default_icon": {
@@ -49,7 +66,10 @@
   },
   "browser_specific_settings": {
     "gecko": {
-      "id": "{513646f8-fb87-4135-a41e-4cf1d1ccccf2}"
+      "id": "{513646f8-fb87-4135-a41e-4cf1d1ccccf2}",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
     }
   }
 }

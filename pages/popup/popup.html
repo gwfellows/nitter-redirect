@@ -33,43 +33,55 @@
 
     <section class="options settings_block">
       <h1>Nitter Instance</h1>
-      <input
-        id="instance"
-        list="instance-list"
-        type="url"
-        placeholder="https://nitter.net"
-      />
-      <datalist id="instance-list">
-        <option value="https://nitter.net"> </option>
-        <option value="https://nitter.snopyta.org"> </option>
-        <option value="https://nitter.42l.fr"> </option>
-        <option value="https://nitter.nixnet.services"> </option>
-        <option value="https://nitter.13ad.de"> </option>
-        <option value="https://tw.openalgeria.org"> </option>
-        <option value="https://nitter.pussthecat.org"> </option>
-        <option value="https://nitter.mastodont.cat"> </option>
-        <option value="https://nitter.dark.fail"> </option>
-        <option value="https://nitter.tedomum.net"> </option>
-        <option value="https://t.maisputain.ovh"> </option>
-        <option value="https://nitter.cattube.org"> </option>
-        <option value="https://nitter.fdn.fr"> </option>
-        <option value="https://nitter.1d4.us"> </option>
-        <option value="https://nitter.kavin.rocks"> </option>
-        <option value="https://nitter.libre.cx"> </option>
-        <option
-          value="http://3nzoldnxplag42gqjs23xvghtzf6t6yzssrtytnntc6ppc7xxuoneoad.onion"
-        >
-        </option>
-        <option
-          value="http://nitter.l4qlywnpwqsluw65ts7md3khrivpirse744un3x7mlskqauz5pyuzgqd.onion"
-        >
-        </option>
-        <option
-          value="http://nitterlgj3n5fgwesu3vxc5h67ruku33nqaoeoocae2mvlzhsu6k7fqd.onion"
-        ></option>
-      </datalist>
+      <div class="clear"></div>
+
+      <select id="instance-mode" aria-label="How to choose a Nitter instance">
+        <option value="auto">Automatic &mdash; fastest working instance</option>
+        <option value="manual">Pick an instance</option>
+        <option value="custom">Custom URL</option>
+      </select>
+
+      <div id="auto-panel" class="panel">
+        <p id="active-instance" class="active-line"></p>
+      </div>
+
+      <div id="manual-panel" class="panel" hidden>
+        <select id="instance-select" aria-label="Nitter instance"></select>
+      </div>
+
+      <div id="custom-panel" class="panel" hidden>
+        <input
+          id="instance"
+          type="url"
+          placeholder="https://nitter.example.com"
+          aria-label="Custom Nitter instance URL"
+        />
+        <p class="hint">Custom instances are not health checked.</p>
+      </div>
+
+      <div id="permission-prompt" class="notice" hidden>
+        <p>
+          Checking which instances are up needs permission to reach the Nitter
+          instances this extension knows about. Nothing else is contacted.
+        </p>
+        <button type="button" id="grant-permission" class="button">
+          Allow instance checks
+        </button>
+      </div>
+
+      <div id="health-section">
+        <div class="health-head">
+          <h2 id="last-check">Not checked yet</h2>
+          <button type="button" id="check-now" class="link-button">
+            Check now
+          </button>
+        </div>
+        <ul id="health-list" class="health-list"></ul>
+      </div>
     </section>
 
+    <script src="../../browser-api.js"></script>
+    <script src="../../instances.js"></script>
     <script src="./popup.js"></script>
   </body>
 </html>
